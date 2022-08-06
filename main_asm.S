@@ -88,19 +88,22 @@ MOV R1, #GPIO_IN1 @ store the value read from the potentiometer in R1
 MOV R2, #1023 @ load the value 1023 which represents the precision of the potentiometer into R2
 UDIV R3, R1, R2 @ divide the output from the potentiometer by the max potentiometer value to scale the result
 
-MOV R4, #0
+LDR R4, #10
 
-loop:
-CMP R3, R4 @ check if current LED from 1-10 is less than the latest data from the potentiometer
-BGE elsel @ start else statement
-ADD R4, #1 @ the value 1 is added to the R4 register as the LED pins start at 2
-blt gpio_put(R4, #1) @ the LED must be turned on as the current LED represents the LED lower than the measured value's LED
-B endifl:
-elsel: gpio_put(R4, #0) @ the LED must be turned off as the current LED represents the LED higher than the measured value's LED
-endifl:
-CMP R4, #10 @ exit for loop after 10 iterations
-BNE Loop
-END
+MOVS R4, R4 @ to set the condition code flags
+
+while:
+      BEQ endwh
+      CMP R3, R4 @ check if current LED from 1-10 is less than the latest data from the potentiometer
+            BGE elsel @ start else statement
+            SUB R4, #1 @ the value 1 is subtracted from the R4 register as the while loop decrements
+            blt gpio_put(R4, #1) @ the LED must be turned on as the current LED represents the LED lower than the measured value's LED
+            B endifl:
+            elsel: gpio_put(R4, #0) @ the LED must be turned off as the current LED represents the LED higher than the measured value's LED
+            endifl:
+      B while
+endwh:
+
 
 B       loop
 
